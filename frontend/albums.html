@@ -1,0 +1,140 @@
+<!-- Farsaad Kamran -->
+<!-- 23316673 -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Albums</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Albums</h1>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="artists.html">Artists</a>
+    <a href="songs.html">Songs</a>
+</nav>
+
+<h3>Add Album</h3>
+<input id="name" placeholder="Album Name">
+<input id="year" placeholder="Year">
+<input id="listens" placeholder="Listens">
+<select id="artist_id"></select>
+<button onclick="addAlbum()">Add</button>
+
+<h3>Update Album</h3>
+<input id="update_id" placeholder="Album ID" readonly>
+<input id="update_name" placeholder="Name">
+<input id="update_year" placeholder="Year">
+<input id="update_listens" placeholder="Listens">
+<select id="update_artist_id"></select>
+<button onclick="updateAlbum()">Update</button>
+<button onclick="clearUpdateForm()">Cancel</button>
+
+<h3>All Albums</h3>
+<table>
+    <thead><tr><th>ID</th><th>Name</th><th>Year</th><th>Listens</th><th>Artist</th><th>Actions</th></tr></thead>
+    <tbody id="table"></tbody>
+</table>
+
+<script>
+const API_ALBUMS = "http://localhost:3001/albums";
+const API_ARTISTS = "http://localhost:3001/artists";
+let artists = [];
+
+async function loadArtists(){
+    const res = await fetch(API_ARTISTS);
+    artists = await res.json();
+    const artistSelect = document.getElementById("artist_id");
+    const updateArtistSelect = document.getElementById("update_artist_id");
+    artistSelect.innerHTML = "";
+    updateArtistSelect.innerHTML = "";
+    artists.forEach(a => {
+        artistSelect.innerHTML += `<option value="${a.id}">${a.name}</option>`;
+        updateArtistSelect.innerHTML += `<option value="${a.id}">${a.name}</option>`;
+    });
+}
+
+async function load(){
+    const res = await fetch(API_ALBUMS);
+    const data = await res.json();
+    const table = document.getElementById("table");
+    table.innerHTML = "";
+    data.forEach(a => {
+        table.innerHTML += `
+            <tr>
+                <td>${a.id}</td>
+                <td>${a.name}</td>
+                <td>${a.year}</td>
+                <td>${a.listens}</td>
+                <td>${a.artist_name}</td>
+                <td>
+                    <button onclick="editAlbum(${a.id}, '${a.name}', ${a.year}, ${a.listens}, ${a.artist_id})">Edit</button>
+                    <button onclick="deleteAlbum(${a.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function addAlbum(){
+    const name = document.getElementById("name").value;
+    const year = document.getElementById("year").value;
+    const listens = document.getElementById("listens").value;
+    const artist_id = document.getElementById("artist_id").value;
+    if(!name || !year || !listens) return alert("All fields required");
+    await fetch(API_ALBUMS, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, year, listens, artist_id })
+    });
+    document.getElementById("name").value = "";
+    document.getElementById("year").value = "";
+    document.getElementById("listens").value = "";
+    load();
+}
+
+function editAlbum(id, name, year, listens, artist_id){
+    document.getElementById("update_id").value = id;
+    document.getElementById("update_name").value = name;
+    document.getElementById("update_year").value = year;
+    document.getElementById("update_listens").value = listens;
+    document.getElementById("update_artist_id").value = artist_id;
+}
+
+async function updateAlbum(){
+    const id = document.getElementById("update_id").value;
+    const name = document.getElementById("update_name").value;
+    const year = document.getElementById("update_year").value;
+    const listens = document.getElementById("update_listens").value;
+    const artist_id = document.getElementById("update_artist_id").value;
+    if(!id || !name || !year || !listens) return alert("All fields required");
+    await fetch(`${API_ALBUMS}/${id}`, {
+        method:"PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, year, listens, artist_id })
+    });
+    clearUpdateForm();
+    load();
+}
+
+function clearUpdateForm(){
+    document.getElementById("update_id").value = "";
+    document.getElementById("update_name").value = "";
+    document.getElementById("update_year").value = "";
+    document.getElementById("update_listens").value = "";
+}
+
+async function deleteAlbum(id){
+    if(confirm("Delete this album? All songs inside will be deleted."))
+        await fetch(`${API_ALBUMS}/${id}`, {method:"DELETE"});
+    load();
+}
+
+loadArtists();
+load();
+</script>
+</body>
+</html>

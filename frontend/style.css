@@ -1,0 +1,29 @@
+/* Farsaad Kamran */
+/* 23316673 */
+
+body {
+    font-family: Arial;
+    background: #f4f4f4;
+    text-align: center;
+}
+
+nav a {
+    margin: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+table {
+    margin: auto;
+    border-collapse: collapse;
+}
+
+td, th {
+    border: 1px solid black;
+    padding: 8px;
+}
+
+button {
+    margin: 5px;
+    padding: 5px 10px;
+}

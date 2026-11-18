@@ -1,0 +1,120 @@
+<!-- Farsaad Kamran -->
+<!-- 23316673 -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Artists</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Artists</h1>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="albums.html">Albums</a>
+    <a href="songs.html">Songs</a>
+</nav>
+
+<h3>Add Artist</h3>
+<input id="name" placeholder="Name">
+<input id="genre" placeholder="Genre">
+<input id="listeners" placeholder="Listeners">
+<button onclick="addArtist()">Add</button>
+
+<h3>Update Artist</h3>
+<input id="update_id" placeholder="Artist ID" readonly>
+<input id="update_name" placeholder="Name">
+<input id="update_genre" placeholder="Genre">
+<input id="update_listeners" placeholder="Listeners">
+<button onclick="updateArtist()">Update</button>
+<button onclick="clearUpdateForm()">Cancel</button>
+
+<h3>All Artists</h3>
+<table>
+    <thead>
+        <tr><th>ID</th><th>Name</th><th>Genre</th><th>Listeners</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="table"></tbody>
+</table>
+
+<script>
+const API = "http://localhost:3001/artists";
+
+async function load(){
+    const res = await fetch(API);
+    const data = await res.json();
+    const table = document.getElementById("table");
+    table.innerHTML = "";
+    data.forEach(a => {
+        table.innerHTML += `
+            <tr>
+                <td>${a.id}</td>
+                <td>${a.name}</td>
+                <td>${a.genre}</td>
+                <td>${a.listeners}</td>
+                <td>
+                    <button onclick="editArtist(${a.id}, '${a.name}', '${a.genre}', ${a.listeners})">Edit</button>
+                    <button onclick="deleteArtist(${a.id})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function addArtist(){
+    const name = document.getElementById("name").value;
+    const genre = document.getElementById("genre").value;
+    const listeners = document.getElementById("listeners").value;
+    if(!name || !genre || !listeners) return alert("All fields required");
+    await fetch(API, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, genre, listeners })
+    });
+    document.getElementById("name").value = "";
+    document.getElementById("genre").value = "";
+    document.getElementById("listeners").value = "";
+    load();
+}
+
+function editArtist(id, name, genre, listeners){
+    document.getElementById("update_id").value = id;
+    document.getElementById("update_name").value = name;
+    document.getElementById("update_genre").value = genre;
+    document.getElementById("update_listeners").value = listeners;
+}
+
+async function updateArtist(){
+    const id = document.getElementById("update_id").value;
+    const name = document.getElementById("update_name").value;
+    const genre = document.getElementById("update_genre").value;
+    const listeners = document.getElementById("update_listeners").value;
+    if(!id || !name || !genre || !listeners) return alert("All fields required");
+    await fetch(`${API}/${id}`, {
+        method:"PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ name, genre, listeners })
+    });
+    clearUpdateForm();
+    load();
+}
+
+function clearUpdateForm(){
+    document.getElementById("update_id").value = "";
+    document.getElementById("update_name").value = "";
+    document.getElementById("update_genre").value = "";
+    document.getElementById("update_listeners").value = "";
+}
+
+async function deleteArtist(id){
+    if(confirm("Delete this artist? All albums and songs will be deleted."))
+        await fetch(`${API}/${id}`, {method:"DELETE"});
+    load();
+}
+
+load();
+</script>
+</body>
+</html>
